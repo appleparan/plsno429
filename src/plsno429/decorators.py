@@ -8,7 +8,7 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-from .algorithms import RetryAlgorithm
+from .algorithms import RetryAlgorithm, TokenBucketAlgorithm
 from .base import BaseThrottleAlgorithm
 from .types import AsyncFunction, SyncFunction, ThrottledFunction
 
@@ -24,6 +24,7 @@ def _get_algorithm_class(algorithm: str) -> type[BaseThrottleAlgorithm]:
     """
     algorithms = {
         'retry': RetryAlgorithm,
+        'token_bucket': TokenBucketAlgorithm,
     }
 
     if algorithm not in algorithms:
