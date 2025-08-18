@@ -249,7 +249,6 @@ known-third-party = ["numpy", "scipy", "pandas", "matplotlib", "sklearn", "torch
 [tool.mypy]
 # https://mypy.readthedocs.io/en/latest/config_file.html#using-a-pyproject-toml-file
 python_version = "3.13"
-plugins = "numpy.typing.mypy_plugin"
 pretty = true
 show_traceback = true
 color_output = true
