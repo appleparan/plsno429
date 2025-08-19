@@ -19,7 +19,7 @@ from plsno429.exceptions import (
 
 __author__ = """Jongsu Liam Kim"""
 __email__ = 'jongsukim8@gmail.com'
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 __all__ = [
     'CircuitBreakerOpen',
