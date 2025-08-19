@@ -208,9 +208,11 @@ class TestSlidingWindowAlgorithm:
         # Add some requests
         algorithm._request_times.extend([90.0, 95.0, 98.0])
 
-        with patch.object(algorithm, '_get_current_request_count', return_value=3):
-            with patch.object(algorithm, '_calculate_wait_time', return_value=5.0):
-                stats = algorithm.get_window_stats()
+        with (
+            patch.object(algorithm, '_get_current_request_count', return_value=3),
+            patch.object(algorithm, '_calculate_wait_time', return_value=5.0),
+        ):
+            stats = algorithm.get_window_stats()
 
         assert stats['current_requests'] == 3
         assert stats['max_requests'] == 10

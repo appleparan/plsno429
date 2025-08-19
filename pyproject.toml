@@ -126,12 +126,21 @@ ignore = [
     "ANN002", # missing-type-args
     "ANN003", # missing-type-kwargs
     "ANN204", # missing-return-type-special-method
+    "ANN401", # dynamically-typed-expressions (common in generic APIs)
+    "ARG002", # unused-method-argument (common in abstract interfaces)
+    "BLE001", # blind-except (sometimes necessary for generic handling)
     "COM812", # missing-trailing-comma
     "D100", # undocumented-public-module
     "D101", # undocumented-public-class
     "E741", # ambiguous-variable-name
     "F811", # redefined-while-unused
+    "FBT001", # boolean-typed-positional-argument
+    "FBT002", # boolean-default-positional-argument
     "N806", # non-lowercase-variable-in-function
+    "N818", # exception-name-should-be-named-with-an-error-suffix
+    "S110", # try-except-pass-detected
+    "S311", # standard-pseudo-random-generators-not-suitable-for-cryptographic-purposes
+    "SIM105", # use-contextlib-suppress
 ]
 select = [
     "A",    # flake8-builtins
@@ -225,10 +234,14 @@ max-complexity = 18
 ]
 "**/tests/**.py" = [
     "ANN",
-    "D100",
-    "D103",
-    "D104",
-    "S101",
+    "ARG001",  # unused-function-argument (common in test fixtures)
+    "B017",   # assert-raises-exception (pytest pattern)
+    "D100",   # undocumented-public-module
+    "D102",   # undocumented-public-method (test methods don't need docstrings)
+    "D103",   # undocumented-public-function
+    "D104",   # undocumented-public-package
+    "PT011",  # pytest-raises-too-broad (sometimes needed for generic exceptions)
+    "S101",   # assert (allowed in tests)
 ]
 "configs/**.py" = [
     "F401",

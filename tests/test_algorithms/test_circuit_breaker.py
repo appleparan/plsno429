@@ -64,9 +64,11 @@ class TestCircuitBreakerAlgorithm:
         algorithm._last_failure_time = 100.0
 
         # Mock both time modules to avoid TPM checking issues
-        with patch('time.time', return_value=130.0):  # Only 30 seconds passed
-            with pytest.raises(CircuitBreakerOpen):
-                algorithm.should_throttle()
+        with (
+            patch('time.time', return_value=130.0),  # Only 30 seconds passed
+            pytest.raises(CircuitBreakerOpen),
+        ):
+            algorithm.should_throttle()
 
     def test_should_throttle_open_state_transitions_to_half_open(self):
         algorithm = CircuitBreakerAlgorithm(recovery_timeout=60.0)

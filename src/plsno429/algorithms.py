@@ -870,12 +870,11 @@ class CircuitBreakerAlgorithm(BaseThrottleAlgorithm):
                     msg
                 )
 
-        elif self._state == 'half_open':
-            if self._half_open_calls >= self.half_open_max_calls:
-                # Exceeded half-open calls, go back to open
-                self._transition_to_open()
-                msg = 'Circuit breaker half-open calls exceeded'
-                raise CircuitBreakerOpen(msg)
+        elif self._state == 'half_open' and self._half_open_calls >= self.half_open_max_calls:
+            # Exceeded half-open calls, go back to open
+            self._transition_to_open()
+            msg = 'Circuit breaker half-open calls exceeded'
+            raise CircuitBreakerOpen(msg)
 
         # Allow request to proceed
         return None

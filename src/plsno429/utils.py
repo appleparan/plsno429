@@ -108,7 +108,7 @@ def add_jitter(delay: float, jitter: bool = True) -> float:
     return delay + jitter_amount
 
 
-def estimate_tokens(text: str, model: str = 'gpt-4') -> int:
+def estimate_tokens(text: str, model: str = 'gpt-4') -> int:  # noqa: ARG001
     """Estimate token count for text.
 
     Args:
