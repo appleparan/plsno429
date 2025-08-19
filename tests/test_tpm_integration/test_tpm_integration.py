@@ -131,11 +131,11 @@ class TestTPMIntegration:
             class MockResponse:
                 def __init__(self):
                     self.model = 'gpt-4'
-                    self.usage = MockUsage()
+                    self.usage = MockUsage(250)
 
             class MockUsage:
-                def __init__(self):
-                    self.total_tokens = 250
+                def __init__(self, tokens: int):
+                    self.total_tokens = tokens
 
             return MockResponse()
 

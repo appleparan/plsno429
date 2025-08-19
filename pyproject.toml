@@ -285,6 +285,12 @@ warn_unreachable = true
 warn_unused_configs = true
 warn_unused_ignores = true
 
+# Exclude tests and scripts from mypy checking
+exclude = [
+    "tests/.*",
+    "scripts/.*",
+]
+
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = [

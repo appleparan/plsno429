@@ -14,11 +14,11 @@ from plsno429.algorithms import (
     SlidingWindowAlgorithm,
     TokenBucketAlgorithm,
 )
+from plsno429.base import BaseThrottleAlgorithm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from plsno429.base import BaseThrottleAlgorithm
     from plsno429.types import AsyncFunction, SyncFunction, ThrottledFunction
 
 
@@ -31,7 +31,7 @@ def _get_algorithm_class(algorithm: str) -> type[BaseThrottleAlgorithm]:
     Returns:
         Algorithm class
     """
-    algorithms = {
+    algorithms: dict[str, type[BaseThrottleAlgorithm]] = {
         'retry': RetryAlgorithm,
         'token_bucket': TokenBucketAlgorithm,
         'adaptive': AdaptiveAlgorithm,

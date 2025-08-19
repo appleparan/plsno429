@@ -241,7 +241,7 @@ class BaseThrottleAlgorithm(ABC):
         current_usage = self._get_current_tpm_usage(model)
         effective_limit = self._get_effective_tpm_limit(model)
 
-        stats = {
+        stats: dict[str, Any] = {
             'current_usage': current_usage,
             'effective_limit': effective_limit,
             'raw_limit': self.model_limits.get(model, self.tpm_limit) if model else self.tpm_limit,
