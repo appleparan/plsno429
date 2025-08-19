@@ -5,12 +5,14 @@ from __future__ import annotations
 import statistics
 import time
 from collections import deque
-from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from plsno429.base import BaseThrottleAlgorithm
 from plsno429.exceptions import CircuitBreakerOpen, ConfigurationError
 from plsno429.utils import add_jitter, estimate_tokens, is_rate_limit_error, parse_retry_after
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class RetryAlgorithm(BaseThrottleAlgorithm):
@@ -22,10 +24,10 @@ class RetryAlgorithm(BaseThrottleAlgorithm):
         base_delay: float = 1.0,
         max_delay: float = 60.0,
         backoff_multiplier: float = 2.0,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """Initialize retry algorithm.
-        
+
         Args:
             max_retries: Maximum number of retry attempts
             base_delay: Base delay in seconds
@@ -48,25 +50,31 @@ class RetryAlgorithm(BaseThrottleAlgorithm):
     def _validate_retry_config(self) -> None:
         """Validate retry-specific configuration."""
         if self.max_retries < 0:
-            raise ConfigurationError('max_retries must be non-negative')
+            msg = 'max_retries must be non-negative'
+            raise ConfigurationError(msg)
 
         if self.base_delay <= 0:
-            raise ConfigurationError('base_delay must be positive')
+            msg = 'base_delay must be positive'
+            raise ConfigurationError(msg)
 
         if self.max_delay <= 0:
-            raise ConfigurationError('max_delay must be positive')
+            msg = 'max_delay must be positive'
+            raise ConfigurationError(msg)
 
         if self.backoff_multiplier <= 0:
-            raise ConfigurationError('backoff_multiplier must be positive')
+            msg = 'backoff_multiplier must be positive'
+            raise ConfigurationError(msg)
 
-    def should_throttle(self, estimated_tokens: int = 0, model: str | None = None, **kwargs: Any) -> float | None:
+    def should_throttle(
+        self, estimated_tokens: int = 0, model: str | None = None, **kwargs: Any
+    ) -> float | None:
         """Check if request should be throttled due to TPM limits.
-        
+
         Args:
             estimated_tokens: Estimated tokens for upcoming request
             model: Model name for model-specific limits
             **kwargs: Additional parameters
-            
+
         Returns:
             Delay in seconds if throttling needed, None otherwise
         """
@@ -77,9 +85,11 @@ class RetryAlgorithm(BaseThrottleAlgorithm):
 
         return None
 
-    def on_request_success(self, tokens_used: int = 0, model: str | None = None, **kwargs: Any) -> None:
+    def on_request_success(
+        self, tokens_used: int = 0, model: str | None = None, **kwargs: Any
+    ) -> None:
         """Handle successful request.
-        
+
         Args:
             tokens_used: Number of tokens used in request
             model: Model name for model-specific tracking
@@ -97,16 +107,16 @@ class RetryAlgorithm(BaseThrottleAlgorithm):
         exception: Exception,
         estimated_tokens: int = 0,
         model: str | None = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> float | None:
         """Handle failed request and determine retry delay.
-        
+
         Args:
             exception: Exception that occurred
             estimated_tokens: Estimated tokens for the request
             model: Model name for model-specific tracking
             **kwargs: Additional parameters
-            
+
         Returns:
             Delay in seconds before retry, None if no retry
         """
@@ -132,7 +142,7 @@ class RetryAlgorithm(BaseThrottleAlgorithm):
             # Use exponential backoff
             delay = min(
                 self.base_delay * (self.backoff_multiplier ** (self._retry_count - 1)),
-                self.max_delay
+                self.max_delay,
             )
 
         # Add jitter to distribute requests
@@ -154,7 +164,7 @@ class TokenBucketAlgorithm(BaseThrottleAlgorithm):
         burst_size: int = 1000,
         refill_rate: float = 1500.0,
         token_estimate_func: Callable[..., int] | None = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """Initialize token bucket algorithm.
 
@@ -278,10 +288,7 @@ class TokenBucketAlgorithm(BaseThrottleAlgorithm):
         self._refill_tokens()
 
     def on_request_failure(
-        self,
-        exception: Exception,
-        estimated_tokens: int = 0,
-        **kwargs: Any
+        self, exception: Exception, estimated_tokens: int = 0, **kwargs: Any
     ) -> float | None:
         """Handle failed request.
 
@@ -342,7 +349,7 @@ class AdaptiveAlgorithm(BaseThrottleAlgorithm):
         adaptation_rate: float = 0.1,
         min_delay: float = 0.1,
         max_delay: float = 300.0,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """Initialize adaptive algorithm.
 
@@ -396,12 +403,14 @@ class AdaptiveAlgorithm(BaseThrottleAlgorithm):
             tokens: Number of tokens used
         """
         current_time = time.time()
-        self._request_history.append({
-            'timestamp': current_time,
-            'success': success,
-            'delay_used': delay_used,
-            'tokens': tokens,
-        })
+        self._request_history.append(
+            {
+                'timestamp': current_time,
+                'success': success,
+                'delay_used': delay_used,
+                'tokens': tokens,
+            }
+        )
 
         # Update success rate
         if len(self._request_history) >= 10:  # Need minimum data
@@ -419,21 +428,19 @@ class AdaptiveAlgorithm(BaseThrottleAlgorithm):
             return self._current_delay
 
         recent_requests = list(self._request_history)[-50:]
-        
+
         # Calculate time-based patterns
         current_time = time.time()
         current_hour = int(current_time // 3600) % 24
-        
+
         # Find average delay for current hour in history
         hour_delays = [
-            req['delay_used'] for req in recent_requests
+            req['delay_used']
+            for req in recent_requests
             if req['success'] and int(req['timestamp'] // 3600) % 24 == current_hour
         ]
-        
-        if hour_delays:
-            suggested_delay = statistics.median(hour_delays)
-        else:
-            suggested_delay = self._current_delay
+
+        suggested_delay = statistics.median(hour_delays) if hour_delays else self._current_delay
 
         # Adjust based on recent success rate
         if self._success_rate < 0.8:
@@ -443,7 +450,7 @@ class AdaptiveAlgorithm(BaseThrottleAlgorithm):
 
         # Consider consecutive 429s
         if self._consecutive_429s > 3:
-            suggested_delay *= (1.2 ** self._consecutive_429s)
+            suggested_delay *= 1.2**self._consecutive_429s
 
         return max(self.min_delay, min(self.max_delay, suggested_delay))
 
@@ -455,9 +462,8 @@ class AdaptiveAlgorithm(BaseThrottleAlgorithm):
         """
         # Exponential moving average
         self._current_delay = (
-            (1 - self.adaptation_rate) * self._current_delay +
-            self.adaptation_rate * target_delay
-        )
+            1 - self.adaptation_rate
+        ) * self._current_delay + self.adaptation_rate * target_delay
         self._current_delay = max(self.min_delay, min(self.max_delay, self._current_delay))
 
     def should_throttle(self, estimated_tokens: int = 0, **kwargs: Any) -> float | None:
@@ -483,7 +489,7 @@ class AdaptiveAlgorithm(BaseThrottleAlgorithm):
 
         # Calculate time since last request
         time_since_last = current_time - self._last_request_time
-        
+
         # If enough time has passed, no throttling needed
         if time_since_last >= self._current_delay:
             self._last_request_time = current_time
@@ -492,7 +498,7 @@ class AdaptiveAlgorithm(BaseThrottleAlgorithm):
         # Calculate required wait time
         required_wait = self._current_delay - time_since_last
         jittered_wait = add_jitter(required_wait, self.jitter)
-        
+
         return self._enforce_max_wait(jittered_wait)
 
     def on_request_success(self, tokens_used: int = 0, **kwargs: Any) -> None:
@@ -504,19 +510,16 @@ class AdaptiveAlgorithm(BaseThrottleAlgorithm):
         """
         # Reset consecutive 429 counter
         self._consecutive_429s = 0
-        
+
         # Record successful request
         self._record_request(success=True, delay_used=self._current_delay, tokens=tokens_used)
-        
+
         # Track token usage for TPM
         if tokens_used > 0:
             self._add_token_usage(tokens_used)
 
     def on_request_failure(
-        self,
-        exception: Exception,
-        estimated_tokens: int = 0,
-        **kwargs: Any
+        self, exception: Exception, estimated_tokens: int = 0, **kwargs: Any
     ) -> float | None:
         """Handle failed request and learn from failure.
 
@@ -551,7 +554,7 @@ class AdaptiveAlgorithm(BaseThrottleAlgorithm):
             # Use adaptive delay and increase it due to 429
             adaptive_delay = self._analyze_patterns()
             # Increase delay aggressively on 429
-            delay = adaptive_delay * (1.5 ** self._consecutive_429s)
+            delay = adaptive_delay * (1.5**self._consecutive_429s)
             self._update_delay(delay)
 
         # Add jitter to distribute requests
@@ -591,7 +594,7 @@ class SlidingWindowAlgorithm(BaseThrottleAlgorithm):
         window_size: int = 60,
         max_requests: int = 1500,
         cleanup_interval: int = 10,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """Initialize sliding window algorithm.
 
@@ -630,17 +633,17 @@ class SlidingWindowAlgorithm(BaseThrottleAlgorithm):
     def _cleanup_old_requests(self) -> None:
         """Remove request times outside the current window."""
         current_time = time.time()
-        
+
         # Only cleanup periodically to avoid overhead
         if current_time - self._last_cleanup < self.cleanup_interval:
             return
 
         cutoff_time = current_time - self.window_size
-        
+
         # Remove old requests
         while self._request_times and self._request_times[0] < cutoff_time:
             self._request_times.popleft()
-        
+
         self._last_cleanup = current_time
 
     def _get_current_request_count(self) -> int:
@@ -655,7 +658,7 @@ class SlidingWindowAlgorithm(BaseThrottleAlgorithm):
             Time to wait in seconds
         """
         self._cleanup_old_requests()
-        
+
         if len(self._request_times) < self.max_requests:
             return 0.0
 
@@ -663,7 +666,7 @@ class SlidingWindowAlgorithm(BaseThrottleAlgorithm):
         oldest_request_time = self._request_times[0]
         current_time = time.time()
         window_expiry = oldest_request_time + self.window_size
-        
+
         return max(0.0, window_expiry - current_time)
 
     def should_throttle(self, estimated_tokens: int = 0, **kwargs: Any) -> float | None:
@@ -704,10 +707,7 @@ class SlidingWindowAlgorithm(BaseThrottleAlgorithm):
             self._add_token_usage(tokens_used)
 
     def on_request_failure(
-        self,
-        exception: Exception,
-        estimated_tokens: int = 0,
-        **kwargs: Any
+        self, exception: Exception, estimated_tokens: int = 0, **kwargs: Any
     ) -> float | None:
         """Handle failed request.
 
@@ -772,7 +772,7 @@ class CircuitBreakerAlgorithm(BaseThrottleAlgorithm):
         failure_threshold: int = 5,
         recovery_timeout: float = 300.0,
         half_open_max_calls: int = 3,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """Initialize circuit breaker algorithm.
 
@@ -818,8 +818,7 @@ class CircuitBreakerAlgorithm(BaseThrottleAlgorithm):
             True if should attempt reset
         """
         return (
-            self._state == 'open' and
-            time.time() - self._last_failure_time >= self.recovery_timeout
+            self._state == 'open' and time.time() - self._last_failure_time >= self.recovery_timeout
         )
 
     def _transition_to_half_open(self) -> None:
@@ -863,16 +862,20 @@ class CircuitBreakerAlgorithm(BaseThrottleAlgorithm):
             if self._should_attempt_reset():
                 self._transition_to_half_open()
             else:
-                raise CircuitBreakerOpen(
+                msg = (
                     f'Circuit breaker is open. Will retry after '
                     f'{self.recovery_timeout - (time.time() - self._last_failure_time):.1f}s'
+                )
+                raise CircuitBreakerOpen(
+                    msg
                 )
 
         elif self._state == 'half_open':
             if self._half_open_calls >= self.half_open_max_calls:
                 # Exceeded half-open calls, go back to open
                 self._transition_to_open()
-                raise CircuitBreakerOpen('Circuit breaker half-open calls exceeded')
+                msg = 'Circuit breaker half-open calls exceeded'
+                raise CircuitBreakerOpen(msg)
 
         # Allow request to proceed
         return None
@@ -901,10 +904,7 @@ class CircuitBreakerAlgorithm(BaseThrottleAlgorithm):
             self._add_token_usage(tokens_used)
 
     def on_request_failure(
-        self,
-        exception: Exception,
-        estimated_tokens: int = 0,
-        **kwargs: Any
+        self, exception: Exception, estimated_tokens: int = 0, **kwargs: Any
     ) -> float | None:
         """Handle failed request.
 
@@ -918,7 +918,9 @@ class CircuitBreakerAlgorithm(BaseThrottleAlgorithm):
         """
         # Check if this is a failure that should affect circuit breaker
         is_rate_limit = is_rate_limit_error(exception)
-        is_circuit_breaker_failure = is_rate_limit or isinstance(exception, (ConnectionError, TimeoutError))
+        is_circuit_breaker_failure = is_rate_limit or isinstance(
+            exception, ConnectionError | TimeoutError
+        )
 
         if is_circuit_breaker_failure:
             if self._state == 'closed':
@@ -943,7 +945,7 @@ class CircuitBreakerAlgorithm(BaseThrottleAlgorithm):
             delay = retry_after_delay
         else:
             # Use exponential backoff based on failure count
-            delay = min(2.0 ** self._failure_count, 60.0)
+            delay = min(2.0**self._failure_count, 60.0)
 
         # Add jitter to distribute requests
         delay = add_jitter(delay, self.jitter)
@@ -968,11 +970,13 @@ class CircuitBreakerAlgorithm(BaseThrottleAlgorithm):
             stats['time_until_retry'] = max(0, time_until_retry)
 
         elif self._state == 'half_open':
-            stats.update({
-                'half_open_calls': self._half_open_calls,
-                'half_open_successes': self._half_open_successes,
-                'max_half_open_calls': self.half_open_max_calls,
-            })
+            stats.update(
+                {
+                    'half_open_calls': self._half_open_calls,
+                    'half_open_successes': self._half_open_successes,
+                    'max_half_open_calls': self.half_open_max_calls,
+                }
+            )
 
         return stats
 

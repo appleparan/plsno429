@@ -5,20 +5,29 @@ from __future__ import annotations
 import asyncio
 import functools
 import time
-from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from plsno429.algorithms import AdaptiveAlgorithm, CircuitBreakerAlgorithm, RetryAlgorithm, SlidingWindowAlgorithm, TokenBucketAlgorithm
-from plsno429.base import BaseThrottleAlgorithm
-from plsno429.types import AsyncFunction, SyncFunction, ThrottledFunction
+from plsno429.algorithms import (
+    AdaptiveAlgorithm,
+    CircuitBreakerAlgorithm,
+    RetryAlgorithm,
+    SlidingWindowAlgorithm,
+    TokenBucketAlgorithm,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from plsno429.base import BaseThrottleAlgorithm
+    from plsno429.types import AsyncFunction, SyncFunction, ThrottledFunction
 
 
 def _get_algorithm_class(algorithm: str) -> type[BaseThrottleAlgorithm]:
     """Get algorithm class by name.
-    
+
     Args:
         algorithm: Algorithm name
-        
+
     Returns:
         Algorithm class
     """
@@ -32,7 +41,9 @@ def _get_algorithm_class(algorithm: str) -> type[BaseThrottleAlgorithm]:
 
     if algorithm not in algorithms:
         from plsno429.exceptions import ConfigurationError
-        raise ConfigurationError(f'Unknown algorithm: {algorithm}')
+
+        msg = f'Unknown algorithm: {algorithm}'
+        raise ConfigurationError(msg)
 
     return algorithms[algorithm]
 
@@ -41,19 +52,20 @@ def _create_throttled_sync_wrapper(
     func: SyncFunction,
     algorithm: BaseThrottleAlgorithm,
     token_estimate_func: Callable[..., int] | None = None,
-    model_func: Callable[..., str] | None = None
+    model_func: Callable[..., str] | None = None,
 ) -> SyncFunction:
     """Create synchronous throttled wrapper.
-    
+
     Args:
         func: Function to wrap
         algorithm: Throttling algorithm
         token_estimate_func: Function to estimate token usage
         model_func: Function to extract model name from request
-        
+
     Returns:
         Wrapped function
     """
+
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Extract model name for model-specific limits
@@ -75,7 +87,6 @@ def _create_throttled_sync_wrapper(
             time.sleep(pre_delay)
 
         # Execute request with retry logic
-        last_exception = None
 
         while True:
             try:
@@ -96,13 +107,10 @@ def _create_throttled_sync_wrapper(
                 return result
 
             except Exception as e:
-                last_exception = e
 
                 # Check if we should retry
                 retry_delay = algorithm.on_request_failure(
-                    e,
-                    estimated_tokens=estimated_tokens,
-                    model=model
+                    e, estimated_tokens=estimated_tokens, model=model
                 )
 
                 if retry_delay is None:
@@ -119,19 +127,20 @@ def _create_throttled_async_wrapper(
     func: AsyncFunction,
     algorithm: BaseThrottleAlgorithm,
     token_estimate_func: Callable[..., int] | None = None,
-    model_func: Callable[..., str] | None = None
+    model_func: Callable[..., str] | None = None,
 ) -> AsyncFunction:
     """Create asynchronous throttled wrapper.
-    
+
     Args:
         func: Async function to wrap
         algorithm: Throttling algorithm
         token_estimate_func: Function to estimate token usage
         model_func: Function to extract model name from request
-        
+
     Returns:
         Wrapped async function
     """
+
     @functools.wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Extract model name for model-specific limits
@@ -153,7 +162,6 @@ def _create_throttled_async_wrapper(
             await asyncio.sleep(pre_delay)
 
         # Execute request with retry logic
-        last_exception = None
 
         while True:
             try:
@@ -174,13 +182,10 @@ def _create_throttled_async_wrapper(
                 return result
 
             except Exception as e:
-                last_exception = e
 
                 # Check if we should retry
                 retry_delay = algorithm.on_request_failure(
-                    e,
-                    estimated_tokens=estimated_tokens,
-                    model=model
+                    e, estimated_tokens=estimated_tokens, model=model
                 )
 
                 if retry_delay is None:
@@ -197,19 +202,20 @@ def throttle_requests(
     algorithm: str = 'retry',
     token_estimate_func: Callable[..., int] | None = None,
     model_func: Callable[..., str] | None = None,
-    **algorithm_kwargs: Any
+    **algorithm_kwargs: Any,
 ) -> Callable[[ThrottledFunction], ThrottledFunction]:
     """Throttle requests library calls.
-    
+
     Args:
         algorithm: Throttling algorithm name
         token_estimate_func: Function to estimate token usage from request
         model_func: Function to extract model name from request arguments
         **algorithm_kwargs: Algorithm-specific configuration
-        
+
     Returns:
         Decorator function
     """
+
     def decorator(func: ThrottledFunction) -> ThrottledFunction:
         # Create algorithm instance
         algorithm_class = _get_algorithm_class(algorithm)
@@ -217,9 +223,13 @@ def throttle_requests(
 
         # Wrap function based on whether it's async
         if asyncio.iscoroutinefunction(func):
-            return _create_throttled_async_wrapper(func, algo_instance, token_estimate_func, model_func)
+            return _create_throttled_async_wrapper(
+                func, algo_instance, token_estimate_func, model_func
+            )
         else:
-            return _create_throttled_sync_wrapper(func, algo_instance, token_estimate_func, model_func)
+            return _create_throttled_sync_wrapper(
+                func, algo_instance, token_estimate_func, model_func
+            )
 
     return decorator
 

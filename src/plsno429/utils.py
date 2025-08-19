@@ -8,10 +8,10 @@ from plsno429.types import HTTPResponse
 
 def parse_retry_after(response: HTTPResponse) -> float | None:
     """Parse Retry-After header from HTTP response.
-    
+
     Args:
         response: HTTP response object from any library
-        
+
     Returns:
         Retry delay in seconds, or None if not found
     """
@@ -48,6 +48,7 @@ def parse_retry_after(response: HTTPResponse) -> float | None:
     try:
         import email.utils
         from datetime import datetime
+
         target_time = email.utils.parsedate_to_datetime(retry_after)
         current_time = datetime.now(target_time.tzinfo)
         delta = (target_time - current_time).total_seconds()
@@ -58,10 +59,10 @@ def parse_retry_after(response: HTTPResponse) -> float | None:
 
 def is_rate_limit_error(exception: Exception) -> bool:
     """Check if exception indicates a rate limit (429) error.
-    
+
     Args:
         exception: Exception to check
-        
+
     Returns:
         True if this is a 429 rate limit error
     """
@@ -83,7 +84,7 @@ def is_rate_limit_error(exception: Exception) -> bool:
         'rate_limit_exceeded',
         'too many requests',
         'quota exceeded',
-        'request rate exceeded'
+        'request rate exceeded',
     ]
 
     return any(indicator in error_msg for indicator in rate_limit_indicators)
@@ -91,11 +92,11 @@ def is_rate_limit_error(exception: Exception) -> bool:
 
 def add_jitter(delay: float, jitter: bool = True) -> float:
     """Add random jitter to delay to distribute requests.
-    
+
     Args:
         delay: Base delay in seconds
         jitter: Whether to add jitter
-        
+
     Returns:
         Delay with jitter applied
     """
@@ -109,11 +110,11 @@ def add_jitter(delay: float, jitter: bool = True) -> float:
 
 def estimate_tokens(text: str, model: str = 'gpt-4') -> int:
     """Estimate token count for text.
-    
+
     Args:
         text: Text to estimate tokens for
         model: Model name for context
-        
+
     Returns:
         Estimated token count
     """
@@ -124,7 +125,7 @@ def estimate_tokens(text: str, model: str = 'gpt-4') -> int:
 
 def get_current_minute_boundary() -> float:
     """Get timestamp of next minute boundary.
-    
+
     Returns:
         Unix timestamp of next minute boundary
     """
@@ -136,16 +137,16 @@ def get_current_minute_boundary() -> float:
 
 def calculate_wait_until_next_minute() -> float:
     """Calculate seconds to wait until next minute boundary.
-    
+
     Returns:
         Seconds to wait
     """
     current_time = time.time()
     seconds_into_minute = current_time % 60
-    
+
     # If we're at an exact minute boundary, no wait needed
     if seconds_into_minute == 0.0:
         return 0.0
-    
+
     # Otherwise, wait until next minute
     return 60.0 - seconds_into_minute

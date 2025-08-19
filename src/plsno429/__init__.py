@@ -10,7 +10,12 @@ from plsno429.decorators import (
     throttle_openai_async,
     throttle_requests,
 )
-from plsno429.exceptions import CircuitBreakerOpen, ConfigurationError, RateLimitExceeded, ThrottleError
+from plsno429.exceptions import (
+    CircuitBreakerOpen,
+    ConfigurationError,
+    RateLimitExceeded,
+    ThrottleError,
+)
 
 __author__ = """Jongsu Liam Kim"""
 __email__ = 'jongsukim8@gmail.com'
