@@ -1,3 +1,13 @@
+## [0.1.2] - 2025-08-19
+
+### Bug Fixes
+
+- Resolve remaining import and type issues ([900d9d0](https://github.com/appleparan/plsno429/commit/900d9d041baa122274a7922a115495fb186d83fc))
+
+### Miscellaneous Tasks
+
+- Prepare package for PyPI publication ([2f76acb](https://github.com/appleparan/plsno429/commit/2f76acbbd6610516f706be8312fd58d148d90224))
+
 ## [0.1.1] - 2025-08-19
 
 ### Bug Fixes
@@ -8,6 +18,10 @@
 
 - Create comprehensive README documentation ([d3c534c](https://github.com/appleparan/plsno429/commit/d3c534cc41e6d5e8f64f0a10d3a57afd80cbb629))
 - Enhance README with detailed throttling algorithm explanations ([ecd0e60](https://github.com/appleparan/plsno429/commit/ecd0e609744cf70441d58631d6fe26b0922b8bb6))
+
+### Miscellaneous Tasks
+
+- Bump version to 0.1.1 ([0ae90c0](https://github.com/appleparan/plsno429/commit/0ae90c06ea51b2e0a96b6f61f149450403245d10))
 
 ### Styling
 
