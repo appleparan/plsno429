@@ -1,3 +1,19 @@
+## [0.1.1] - 2025-08-19
+
+### Bug Fixes
+
+- Resolve all mypy type checking errors ([d7a876f](https://github.com/appleparan/plsno429/commit/d7a876f36297bfc5d1587eb3e4ef10da1f41a8bc))
+
+### Documentation
+
+- Create comprehensive README documentation ([d3c534c](https://github.com/appleparan/plsno429/commit/d3c534cc41e6d5e8f64f0a10d3a57afd80cbb629))
+- Enhance README with detailed throttling algorithm explanations ([ecd0e60](https://github.com/appleparan/plsno429/commit/ecd0e609744cf70441d58631d6fe26b0922b8bb6))
+
+### Styling
+
+- Apply ruff linting fixes to codebase ([71a7452](https://github.com/appleparan/plsno429/commit/71a74526e39ca7d30885fd2c374d479e7d320840))
+- Resolve all remaining linting errors ([fe36881](https://github.com/appleparan/plsno429/commit/fe3688118d219ff6a92ac96799d6dc10125e58a7))
+
 ## [0.1.0] - 2025-08-19
 
 ### Features
@@ -11,6 +27,7 @@
 ### Miscellaneous Tasks
 
 - Remove unused --extra cpu flag from CI workflow ([1cc0311](https://github.com/appleparan/plsno429/commit/1cc0311d3c72b2177b3e155b68ddf2ac35fb72b0))
+- Bump version to 0.1.0 ([7275649](https://github.com/appleparan/plsno429/commit/72756493461a3990375fd0f6114ce6682b7b1c81))
 
 ### Refactor
 
