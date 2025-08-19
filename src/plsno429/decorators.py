@@ -8,9 +8,9 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-from .algorithms import AdaptiveAlgorithm, CircuitBreakerAlgorithm, RetryAlgorithm, SlidingWindowAlgorithm, TokenBucketAlgorithm
-from .base import BaseThrottleAlgorithm
-from .types import AsyncFunction, SyncFunction, ThrottledFunction
+from plsno429.algorithms import AdaptiveAlgorithm, CircuitBreakerAlgorithm, RetryAlgorithm, SlidingWindowAlgorithm, TokenBucketAlgorithm
+from plsno429.base import BaseThrottleAlgorithm
+from plsno429.types import AsyncFunction, SyncFunction, ThrottledFunction
 
 
 def _get_algorithm_class(algorithm: str) -> type[BaseThrottleAlgorithm]:
@@ -31,7 +31,7 @@ def _get_algorithm_class(algorithm: str) -> type[BaseThrottleAlgorithm]:
     }
 
     if algorithm not in algorithms:
-        from .exceptions import ConfigurationError
+        from plsno429.exceptions import ConfigurationError
         raise ConfigurationError(f'Unknown algorithm: {algorithm}')
 
     return algorithms[algorithm]

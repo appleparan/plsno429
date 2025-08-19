@@ -8,9 +8,9 @@ from collections import deque
 from collections.abc import Callable
 from typing import Any
 
-from .base import BaseThrottleAlgorithm
-from .exceptions import CircuitBreakerOpen, ConfigurationError
-from .utils import add_jitter, estimate_tokens, is_rate_limit_error, parse_retry_after
+from plsno429.base import BaseThrottleAlgorithm
+from plsno429.exceptions import CircuitBreakerOpen, ConfigurationError
+from plsno429.utils import add_jitter, estimate_tokens, is_rate_limit_error, parse_retry_after
 
 
 class RetryAlgorithm(BaseThrottleAlgorithm):

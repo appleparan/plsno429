@@ -3,7 +3,7 @@
 import random
 import time
 
-from .types import HTTPResponse
+from plsno429.types import HTTPResponse
 
 
 def parse_retry_after(response: HTTPResponse) -> float | None:

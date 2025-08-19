@@ -6,8 +6,8 @@ import time
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .exceptions import RateLimitExceeded
-from .utils import calculate_wait_until_next_minute
+from plsno429.exceptions import RateLimitExceeded
+from plsno429.utils import calculate_wait_until_next_minute
 
 
 class BaseThrottleAlgorithm(ABC):
@@ -49,15 +49,15 @@ class BaseThrottleAlgorithm(ABC):
     def _validate_config(self) -> None:
         """Validate algorithm configuration."""
         if self.tpm_limit <= 0:
-            from .exceptions import ConfigurationError
+            from plsno429.exceptions import ConfigurationError
             raise ConfigurationError('tpm_limit must be positive')
 
         if not 0 <= self.safety_margin <= 1:
-            from .exceptions import ConfigurationError
+            from plsno429.exceptions import ConfigurationError
             raise ConfigurationError('safety_margin must be between 0 and 1')
 
         if self.max_wait_minutes <= 0:
-            from .exceptions import ConfigurationError
+            from plsno429.exceptions import ConfigurationError
             raise ConfigurationError('max_wait_minutes must be positive')
 
     def _cleanup_old_token_usage(self) -> None:
