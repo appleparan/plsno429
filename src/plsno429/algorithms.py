@@ -866,9 +866,7 @@ class CircuitBreakerAlgorithm(BaseThrottleAlgorithm):
                     f'Circuit breaker is open. Will retry after '
                     f'{self.recovery_timeout - (time.time() - self._last_failure_time):.1f}s'
                 )
-                raise CircuitBreakerOpen(
-                    msg
-                )
+                raise CircuitBreakerOpen(msg)
 
         elif self._state == 'half_open' and self._half_open_calls >= self.half_open_max_calls:
             # Exceeded half-open calls, go back to open

@@ -14,11 +14,11 @@ from plsno429.algorithms import (
     SlidingWindowAlgorithm,
     TokenBucketAlgorithm,
 )
-from plsno429.base import BaseThrottleAlgorithm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from plsno429.base import BaseThrottleAlgorithm
     from plsno429.types import AsyncFunction, SyncFunction, ThrottledFunction
 
 
@@ -107,7 +107,6 @@ def _create_throttled_sync_wrapper(
                 return result
 
             except Exception as e:
-
                 # Check if we should retry
                 retry_delay = algorithm.on_request_failure(
                     e, estimated_tokens=estimated_tokens, model=model
@@ -182,7 +181,6 @@ def _create_throttled_async_wrapper(
                 return result
 
             except Exception as e:
-
                 # Check if we should retry
                 retry_delay = algorithm.on_request_failure(
                     e, estimated_tokens=estimated_tokens, model=model

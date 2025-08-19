@@ -223,9 +223,7 @@ class BaseThrottleAlgorithm(ABC):
                 f'Rate limit delay ({delay:.1f}s) exceeds maximum wait time '
                 f'({max_wait_seconds:.1f}s)'
             )
-            raise RateLimitExceeded(
-                msg
-            )
+            raise RateLimitExceeded(msg)
 
         return delay
 
