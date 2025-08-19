@@ -40,7 +40,8 @@ def _get_algorithm_class(algorithm: str) -> type[BaseThrottleAlgorithm]:
 def _create_throttled_sync_wrapper(
     func: SyncFunction,
     algorithm: BaseThrottleAlgorithm,
-    token_estimate_func: Callable[..., int] | None = None
+    token_estimate_func: Callable[..., int] | None = None,
+    model_func: Callable[..., str] | None = None
 ) -> SyncFunction:
     """Create synchronous throttled wrapper.
     
@@ -48,19 +49,28 @@ def _create_throttled_sync_wrapper(
         func: Function to wrap
         algorithm: Throttling algorithm
         token_estimate_func: Function to estimate token usage
+        model_func: Function to extract model name from request
         
     Returns:
         Wrapped function
     """
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
+        # Extract model name for model-specific limits
+        model = None
+        if model_func:
+            try:
+                model = model_func(*args, **kwargs)
+            except Exception:
+                pass  # Fall back to default model handling
+
         # Estimate tokens for the request
         estimated_tokens = 0
         if token_estimate_func:
             estimated_tokens = token_estimate_func(*args, **kwargs)
 
         # Check if we should throttle before making request
-        pre_delay = algorithm.should_throttle(estimated_tokens=estimated_tokens)
+        pre_delay = algorithm.should_throttle(estimated_tokens=estimated_tokens, model=model)
         if pre_delay is not None:
             time.sleep(pre_delay)
 
@@ -75,8 +85,14 @@ def _create_throttled_sync_wrapper(
                 actual_tokens = estimated_tokens
                 if hasattr(result, 'usage') and hasattr(result.usage, 'total_tokens'):
                     actual_tokens = result.usage.total_tokens
+                elif hasattr(result, 'model') and hasattr(result, 'usage'):
+                    # OpenAI response object
+                    if hasattr(result.usage, 'total_tokens'):
+                        actual_tokens = result.usage.total_tokens
+                    if not model and hasattr(result, 'model'):
+                        model = result.model
 
-                algorithm.on_request_success(tokens_used=actual_tokens)
+                algorithm.on_request_success(tokens_used=actual_tokens, model=model)
                 return result
 
             except Exception as e:
@@ -85,7 +101,8 @@ def _create_throttled_sync_wrapper(
                 # Check if we should retry
                 retry_delay = algorithm.on_request_failure(
                     e,
-                    estimated_tokens=estimated_tokens
+                    estimated_tokens=estimated_tokens,
+                    model=model
                 )
 
                 if retry_delay is None:
@@ -101,7 +118,8 @@ def _create_throttled_sync_wrapper(
 def _create_throttled_async_wrapper(
     func: AsyncFunction,
     algorithm: BaseThrottleAlgorithm,
-    token_estimate_func: Callable[..., int] | None = None
+    token_estimate_func: Callable[..., int] | None = None,
+    model_func: Callable[..., str] | None = None
 ) -> AsyncFunction:
     """Create asynchronous throttled wrapper.
     
@@ -109,19 +127,28 @@ def _create_throttled_async_wrapper(
         func: Async function to wrap
         algorithm: Throttling algorithm
         token_estimate_func: Function to estimate token usage
+        model_func: Function to extract model name from request
         
     Returns:
         Wrapped async function
     """
     @functools.wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> Any:
+        # Extract model name for model-specific limits
+        model = None
+        if model_func:
+            try:
+                model = model_func(*args, **kwargs)
+            except Exception:
+                pass  # Fall back to default model handling
+
         # Estimate tokens for the request
         estimated_tokens = 0
         if token_estimate_func:
             estimated_tokens = token_estimate_func(*args, **kwargs)
 
         # Check if we should throttle before making request
-        pre_delay = algorithm.should_throttle(estimated_tokens=estimated_tokens)
+        pre_delay = algorithm.should_throttle(estimated_tokens=estimated_tokens, model=model)
         if pre_delay is not None:
             await asyncio.sleep(pre_delay)
 
@@ -136,8 +163,14 @@ def _create_throttled_async_wrapper(
                 actual_tokens = estimated_tokens
                 if hasattr(result, 'usage') and hasattr(result.usage, 'total_tokens'):
                     actual_tokens = result.usage.total_tokens
+                elif hasattr(result, 'model') and hasattr(result, 'usage'):
+                    # OpenAI response object
+                    if hasattr(result.usage, 'total_tokens'):
+                        actual_tokens = result.usage.total_tokens
+                    if not model and hasattr(result, 'model'):
+                        model = result.model
 
-                algorithm.on_request_success(tokens_used=actual_tokens)
+                algorithm.on_request_success(tokens_used=actual_tokens, model=model)
                 return result
 
             except Exception as e:
@@ -146,7 +179,8 @@ def _create_throttled_async_wrapper(
                 # Check if we should retry
                 retry_delay = algorithm.on_request_failure(
                     e,
-                    estimated_tokens=estimated_tokens
+                    estimated_tokens=estimated_tokens,
+                    model=model
                 )
 
                 if retry_delay is None:
@@ -162,6 +196,7 @@ def _create_throttled_async_wrapper(
 def throttle_requests(
     algorithm: str = 'retry',
     token_estimate_func: Callable[..., int] | None = None,
+    model_func: Callable[..., str] | None = None,
     **algorithm_kwargs: Any
 ) -> Callable[[ThrottledFunction], ThrottledFunction]:
     """Throttle requests library calls.
@@ -169,6 +204,7 @@ def throttle_requests(
     Args:
         algorithm: Throttling algorithm name
         token_estimate_func: Function to estimate token usage from request
+        model_func: Function to extract model name from request arguments
         **algorithm_kwargs: Algorithm-specific configuration
         
     Returns:
@@ -181,9 +217,9 @@ def throttle_requests(
 
         # Wrap function based on whether it's async
         if asyncio.iscoroutinefunction(func):
-            return _create_throttled_async_wrapper(func, algo_instance, token_estimate_func)
+            return _create_throttled_async_wrapper(func, algo_instance, token_estimate_func, model_func)
         else:
-            return _create_throttled_sync_wrapper(func, algo_instance, token_estimate_func)
+            return _create_throttled_sync_wrapper(func, algo_instance, token_estimate_func, model_func)
 
     return decorator
 

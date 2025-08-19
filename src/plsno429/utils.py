@@ -140,4 +140,12 @@ def calculate_wait_until_next_minute() -> float:
     Returns:
         Seconds to wait
     """
-    return get_current_minute_boundary() - time.time()
+    current_time = time.time()
+    seconds_into_minute = current_time % 60
+    
+    # If we're at an exact minute boundary, no wait needed
+    if seconds_into_minute == 0.0:
+        return 0.0
+    
+    # Otherwise, wait until next minute
+    return 60.0 - seconds_into_minute

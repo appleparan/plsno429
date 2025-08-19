@@ -59,28 +59,30 @@ class RetryAlgorithm(BaseThrottleAlgorithm):
         if self.backoff_multiplier <= 0:
             raise ConfigurationError('backoff_multiplier must be positive')
 
-    def should_throttle(self, estimated_tokens: int = 0, **kwargs: Any) -> float | None:
+    def should_throttle(self, estimated_tokens: int = 0, model: str | None = None, **kwargs: Any) -> float | None:
         """Check if request should be throttled due to TPM limits.
         
         Args:
             estimated_tokens: Estimated tokens for upcoming request
+            model: Model name for model-specific limits
             **kwargs: Additional parameters
             
         Returns:
             Delay in seconds if throttling needed, None otherwise
         """
         # Check TPM limit
-        tpm_delay = self._check_tpm_limit(estimated_tokens)
+        tpm_delay = self._check_tpm_limit(estimated_tokens, model)
         if tpm_delay is not None:
             return self._enforce_max_wait(tpm_delay)
 
         return None
 
-    def on_request_success(self, tokens_used: int = 0, **kwargs: Any) -> None:
+    def on_request_success(self, tokens_used: int = 0, model: str | None = None, **kwargs: Any) -> None:
         """Handle successful request.
         
         Args:
             tokens_used: Number of tokens used in request
+            model: Model name for model-specific tracking
             **kwargs: Additional parameters
         """
         # Reset retry counter on success
@@ -88,12 +90,13 @@ class RetryAlgorithm(BaseThrottleAlgorithm):
 
         # Track token usage
         if tokens_used > 0:
-            self._add_token_usage(tokens_used)
+            self._add_token_usage(tokens_used, model)
 
     def on_request_failure(
         self,
         exception: Exception,
         estimated_tokens: int = 0,
+        model: str | None = None,
         **kwargs: Any
     ) -> float | None:
         """Handle failed request and determine retry delay.
@@ -101,6 +104,7 @@ class RetryAlgorithm(BaseThrottleAlgorithm):
         Args:
             exception: Exception that occurred
             estimated_tokens: Estimated tokens for the request
+            model: Model name for model-specific tracking
             **kwargs: Additional parameters
             
         Returns:
