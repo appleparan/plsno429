@@ -58,6 +58,7 @@ dev = [
     "pytest-cov>=6.0.0",
     "pytest-html>=4.1.1",
     "pytest-mock>=3.14.0",
+    "pytest-timeout>=2.3.1",
     "pre-commit>=4.0.0",
 ]
 docs = [
@@ -324,7 +325,10 @@ norecursedirs = [
 ]
 log_cli = "true"
 markers = [
-    "slow"
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "minute_boundary: marks tests that test minute boundary behavior",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests"
 ]
 doctest_optionflags = ["NUMBER", "NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL"]
 addopts = [
@@ -332,6 +336,7 @@ addopts = [
     "--tb=short",
     "--doctest-modules",
     "--doctest-continue-on-failure",
+    "--timeout=60"     # 60초 timeout per test
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",

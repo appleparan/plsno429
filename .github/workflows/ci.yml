@@ -80,6 +80,8 @@ jobs:
       - name: Install the project
         run: uv sync --group dev --group docs
 
-      - name: Run tests
+      - name: Run tests (CI)
         run: |
-          uv run coverage run -m pytest tests/
+          uv run coverage run -m pytest tests/ --timeout=60 --maxfail=5
+        env:
+          CI: true
