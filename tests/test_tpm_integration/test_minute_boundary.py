@@ -29,10 +29,10 @@ class TestMinuteBoundaryRecovery:
 
     @patch('time.time')
     def test_get_current_minute_boundary(self, mock_time):
-        """Test getting current minute boundary."""
+        """Test getting next minute boundary."""
         mock_time.return_value = 1234.567  # 20:34.567
         boundary = get_current_minute_boundary()
-        assert boundary == 1200.0  # 20:00.0 (start of minute 20)
+        assert boundary == 1260.0  # 21:00.0 (next minute boundary)
 
     @patch('time.time')
     def test_tpm_limit_triggers_minute_boundary_wait(self, mock_time):

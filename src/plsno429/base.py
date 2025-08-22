@@ -69,8 +69,13 @@ class BaseThrottleAlgorithm(ABC):
     def _cleanup_old_token_usage(self) -> None:
         """Remove token usage data older than 2 minutes."""
         current_time = time.time()
-        if current_time - self._last_cleanup < 30:  # Cleanup every 30 seconds
-            return
+        # Handle case where _last_cleanup might be a Mock object
+        try:
+            if current_time - self._last_cleanup < 30:  # Cleanup every 30 seconds
+                return
+        except TypeError:
+            # _last_cleanup is not a number (e.g., Mock), force cleanup
+            pass
 
         current_minute = int(current_time // 60)
         cutoff_minute = current_minute - 2

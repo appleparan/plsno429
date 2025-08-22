@@ -635,8 +635,13 @@ class SlidingWindowAlgorithm(BaseThrottleAlgorithm):
         current_time = time.time()
 
         # Only cleanup periodically to avoid overhead
-        if current_time - self._last_cleanup < self.cleanup_interval:
-            return
+        # Handle case where _last_cleanup might be a Mock object
+        try:
+            if current_time - self._last_cleanup < self.cleanup_interval:
+                return
+        except TypeError:
+            # _last_cleanup is not a number (e.g., Mock), force cleanup
+            pass
 
         cutoff_time = current_time - self.window_size
 

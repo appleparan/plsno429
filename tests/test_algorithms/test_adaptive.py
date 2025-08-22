@@ -95,29 +95,38 @@ class TestAdaptiveAlgorithm:
             algorithm._record_request(success=True, delay_used=2.0)
 
         suggested_delay = algorithm._analyze_patterns()
-        assert suggested_delay == 2.0  # Should match the median delay
+        # Median delay is 2.0, but gets adjusted down by 0.8 due to high success rate (1.0 > 0.95)
+        assert suggested_delay == 1.6  # 2.0 * 0.8
 
     def test_analyze_patterns_adjusts_for_success_rate(self):
         algorithm = AdaptiveAlgorithm()
         algorithm._current_delay = 10.0
 
+        # Add enough request history for analysis
+        for _ in range(15):
+            algorithm._record_request(success=True, delay_used=10.0)
+
         # Low success rate should increase delay
         algorithm._success_rate = 0.7
         suggested_delay = algorithm._analyze_patterns()
-        assert suggested_delay > algorithm._current_delay
+        assert suggested_delay > 10.0  # Should be 10.0 * 1.5 = 15.0
 
         # High success rate should decrease delay
         algorithm._success_rate = 0.97
         suggested_delay = algorithm._analyze_patterns()
-        assert suggested_delay < 10.0
+        assert suggested_delay < 10.0  # Should be 10.0 * 0.8 = 8.0
 
     def test_analyze_patterns_considers_consecutive_429s(self):
         algorithm = AdaptiveAlgorithm()
         algorithm._current_delay = 5.0
         algorithm._consecutive_429s = 4
 
+        # Add enough request history for analysis
+        for _ in range(15):
+            algorithm._record_request(success=True, delay_used=5.0)
+
         suggested_delay = algorithm._analyze_patterns()
-        # Should increase delay due to consecutive 429s
+        # Should increase delay due to consecutive 429s: 5.0 * 1.2^4 ≈ 10.37
         assert suggested_delay > 5.0
 
     def test_update_delay_exponential_moving_average(self):
@@ -154,11 +163,12 @@ class TestAdaptiveAlgorithm:
 
     @patch('plsno429.algorithms.time.time')
     def test_should_throttle_delay_needed(self, mock_time):
+        mock_time.return_value = 0.0
         algorithm = AdaptiveAlgorithm(min_delay=5.0, jitter=False)
 
         # Set last request time
-        mock_time.return_value = 0.0
         algorithm._last_request_time = 0.0
+        algorithm._last_cleanup = 0.0  # Initialize to avoid type error
 
         # Try to make request too soon
         mock_time.return_value = 2.0  # Only 2 seconds later, need 5

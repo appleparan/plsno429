@@ -50,16 +50,17 @@ class TestRetryAlgorithm:
 
     @patch('plsno429.base.time.time')
     def test_should_throttle_over_tpm_limit(self, mock_time):
-        mock_time.return_value = 60.0  # Start of minute
+        mock_time.return_value = 60.5  # Middle of minute
 
         algorithm = RetryAlgorithm(tpm_limit=1000, safety_margin=0.9)
+        algorithm._last_cleanup = 60.0  # Initialize to avoid type error
 
         # Add tokens to exceed 90% of limit (900 tokens)
         algorithm._add_token_usage(950)
 
         result = algorithm.should_throttle(estimated_tokens=1)
         assert result is not None
-        assert result > 0
+        assert result > 0  # Should wait until next minute (59.5 seconds)
 
     def test_on_request_success_resets_retry_count(self):
         algorithm = RetryAlgorithm()
@@ -74,7 +75,7 @@ class TestRetryAlgorithm:
 
         with patch.object(algorithm, '_add_token_usage') as mock_add:
             algorithm.on_request_success(tokens_used=100)
-            mock_add.assert_called_once_with(100)
+            mock_add.assert_called_once_with(100, None)
 
     def test_on_request_failure_non_rate_limit_error(self):
         algorithm = RetryAlgorithm()

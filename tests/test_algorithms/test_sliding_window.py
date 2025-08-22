@@ -47,14 +47,14 @@ class TestSlidingWindowAlgorithm:
         algorithm._request_times.extend([50.0, 60.0, 70.0, 80.0, 90.0])
         algorithm._last_cleanup = 95.0  # Force cleanup
 
-        # Current time is 100, window is 60s, so cutoff is 40
+        # Current time is 105, window is 60s, so cutoff is 45 (105 - 60)
         mock_time.return_value = 105.0
         algorithm._cleanup_old_requests()
 
         # Should remove requests before time 45 (105 - 60)
         remaining_times = list(algorithm._request_times)
         assert all(t >= 45.0 for t in remaining_times)
-        assert 50.0 not in remaining_times  # Should be removed
+        # 50.0 >= 45.0, so it should NOT be removed
 
     @patch('plsno429.algorithms.time.time')
     def test_cleanup_respects_interval(self, mock_time):
