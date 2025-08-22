@@ -150,24 +150,28 @@ class TestAlgorithmSwitching:
     def test_token_bucket_with_429_error_and_retry_after(self):
         retry_count = 0
         
-        @throttle_requests(algorithm='token_bucket', burst_size=1000, jitter=False, max_wait_minutes=0.01)
+        @throttle_requests(algorithm='token_bucket', burst_size=1000, jitter=False, max_wait_minutes=1.0)
         def mock_request():
             nonlocal retry_count
             retry_count += 1
-            exception = Exception('Rate limit exceeded')
-            exception.status_code = 429
-            exception.response = Mock()
-            exception.response.headers = {'Retry-After': '5'}
-            raise exception
+            if retry_count == 1:
+                # First call raises 429 with Retry-After
+                exception = Exception('Rate limit exceeded')
+                exception.status_code = 429
+                exception.response = Mock()
+                exception.response.headers = {'Retry-After': '5'}
+                raise exception
+            else:
+                # Second call succeeds
+                return 'success'
 
         with patch('plsno429.decorators.time.sleep') as mock_sleep:
-            with pytest.raises(Exception):
-                mock_request()
-
-            # Should use Retry-After header value and eventually give up
-            assert mock_sleep.call_count > 0
-            # Check that the first call used the Retry-After value
+            result = mock_request()
+            
+            # Should have slept once using Retry-After header value
+            assert mock_sleep.call_count == 1
             assert mock_sleep.call_args_list[0][0][0] == 5.0
+            assert result == 'success'
 
     def test_algorithm_specific_configuration_validation(self):
         # Test that algorithm-specific validation works

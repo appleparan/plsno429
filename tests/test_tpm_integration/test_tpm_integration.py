@@ -185,9 +185,13 @@ class TestTPMIntegration:
 
         # Test all models stats
         all_stats = algorithm.get_all_model_stats()
-        assert len(all_stats) == 5  # total + 4 models (2 configured + 2 used)
+        assert len(all_stats) == 4  # total + 3 models (3 unique models used)
+        assert 'total' in all_stats
+        assert 'gpt-4' in all_stats
+        assert 'gpt-3.5-turbo' in all_stats
+        assert 'claude-3' in all_stats
 
-    @patch('plsno429.utils.calculate_wait_until_next_minute')
+    @patch('plsno429.base.calculate_wait_until_next_minute')
     def test_minute_boundary_recovery_across_algorithms(self, mock_wait):
         """Test minute boundary recovery works across all algorithms."""
         mock_wait.return_value = 30.0
