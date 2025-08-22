@@ -1,7 +1,8 @@
 """Tests for minute boundary recovery behavior."""
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from plsno429.algorithms import AdaptiveAlgorithm, RetryAlgorithm, TokenBucketAlgorithm
 from plsno429.utils import calculate_wait_until_next_minute, get_current_minute_boundary

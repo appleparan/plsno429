@@ -149,8 +149,10 @@ class TestAlgorithmSwitching:
 
     def test_token_bucket_with_429_error_and_retry_after(self):
         retry_count = 0
-        
-        @throttle_requests(algorithm='token_bucket', burst_size=1000, jitter=False, max_wait_minutes=1.0)
+
+        @throttle_requests(
+            algorithm='token_bucket', burst_size=1000, jitter=False, max_wait_minutes=1.0
+        )
         def mock_request():
             nonlocal retry_count
             retry_count += 1
@@ -167,7 +169,7 @@ class TestAlgorithmSwitching:
 
         with patch('plsno429.decorators.time.sleep') as mock_sleep:
             result = mock_request()
-            
+
             # Should have slept once using Retry-After header value
             assert mock_sleep.call_count == 1
             assert mock_sleep.call_args_list[0][0][0] == 5.0
