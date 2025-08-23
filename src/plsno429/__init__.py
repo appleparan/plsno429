@@ -3,7 +3,7 @@
 A tiny Python library that politely says pls no 429 by auto-handling OpenAI rate limits.
 """
 
-from importlib.metadata import version, PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, version
 
 from plsno429.decorators import (
     throttle_httpx,
