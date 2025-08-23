@@ -1,3 +1,23 @@
+## [0.2.0] - 2025-08-23
+
+### Bug Fixes
+
+- Update release script to use uv version ([120aa1b](https://github.com/appleparan/plsno429/commit/120aa1bf073042b15395b12074641c280995ea89))
+- Resolve test failures and improve time mocking handling ([67d74f6](https://github.com/appleparan/plsno429/commit/67d74f68d8b68ec218ac26b4a32e2115a379bc18))
+- Resolve remaining edge case test failures ([d291428](https://github.com/appleparan/plsno429/commit/d2914280b82dfe40493c87df0d987cb9d153aea8))
+
+### Features
+
+- Add test timeout configuration and CI optimization ([1831ab9](https://github.com/appleparan/plsno429/commit/1831ab9a9d436ba54beec0f405ec89a57c64b20a))
+
+### Miscellaneous Tasks
+
+- Update version to 0.1.2 ([10b7f17](https://github.com/appleparan/plsno429/commit/10b7f173808b89e5e87089c1b45b08a88754173d))
+
+### Styling
+
+- Apply code formatting from linter ([202fd74](https://github.com/appleparan/plsno429/commit/202fd74dd12553bf9460df633c7de7701d5d7fce))
+
 ## [0.1.2] - 2025-08-19
 
 ### Bug Fixes
@@ -7,6 +27,7 @@
 ### Miscellaneous Tasks
 
 - Prepare package for PyPI publication ([2f76acb](https://github.com/appleparan/plsno429/commit/2f76acbbd6610516f706be8312fd58d148d90224))
+- Bump version to 0.1.2 ([b6f34f1](https://github.com/appleparan/plsno429/commit/b6f34f1d8942fbbe209400c7a07ef2ee10082527))
 
 ## [0.1.1] - 2025-08-19
 
