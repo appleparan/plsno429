@@ -3,6 +3,8 @@
 A tiny Python library that politely says pls no 429 by auto-handling OpenAI rate limits.
 """
 
+from importlib.metadata import version, PackageNotFoundError
+
 from plsno429.decorators import (
     throttle_httpx,
     throttle_httpx_async,
@@ -17,10 +19,6 @@ from plsno429.exceptions import (
     ThrottleError,
 )
 
-__author__ = """Jongsu Liam Kim"""
-__email__ = 'jongsukim8@gmail.com'
-__version__ = '0.1.2'
-
 __all__ = [
     'CircuitBreakerOpen',
     'ConfigurationError',
@@ -32,3 +30,12 @@ __all__ = [
     'throttle_openai_async',
     'throttle_requests',
 ]
+
+__author__ = """Jongsu Liam Kim"""
+__email__ = 'jongsukim8@gmail.com'
+
+try:
+    __version__ = version('plsno429')
+except PackageNotFoundError:
+    # fallback for development
+    __version__ = 'unknown'
