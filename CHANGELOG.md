@@ -1,3 +1,9 @@
+## [0.2.1] - 2025-08-23
+
+### Refactor
+
+- Implement single source of truth for version management ([96988ef](https://github.com/appleparan/plsno429/commit/96988efa4f5bfa7318b894b2ce5b740b6dcc500c))
+
 ## [0.2.0] - 2025-08-23
 
 ### Bug Fixes
@@ -13,6 +19,7 @@
 ### Miscellaneous Tasks
 
 - Update version to 0.1.2 ([10b7f17](https://github.com/appleparan/plsno429/commit/10b7f173808b89e5e87089c1b45b08a88754173d))
+- Bump version to 0.2.0 ([f19e90e](https://github.com/appleparan/plsno429/commit/f19e90e39d626a4d41a6832ed4c33c0109640464))
 
 ### Styling
 
