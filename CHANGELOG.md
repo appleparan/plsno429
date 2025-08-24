@@ -1,4 +1,14 @@
+## [0.2.2] - 2025-08-24
+
+### Styling
+
+- Fix import order in __init__.py ([7265ac8](https://github.com/appleparan/plsno429/commit/7265ac860526dbe1a8ed457cd3d4d285d56e4e24))
+
 ## [0.2.1] - 2025-08-23
+
+### Miscellaneous Tasks
+
+- Bump version to 0.2.1 ([fbbae45](https://github.com/appleparan/plsno429/commit/fbbae453fd0a5ed36cfdc6a3acc0f2a570491911))
 
 ### Refactor
 

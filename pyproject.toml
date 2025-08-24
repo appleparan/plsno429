@@ -1,6 +1,6 @@
 [project]
 name = "plsno429"
-version = "0.2.1"
+version = "0.2.2"
 description = "A tiny Python library that politely says pls no 429 by auto-handling OpenAI rate limits."
 authors = [
     {name="Jongsu Liam Kim", email="jongsukim8@gmail.com"}
